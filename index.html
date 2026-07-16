@@ -1194,15 +1194,15 @@
   // картинки: декод только асинхронно (синхронный декод больших JPEG замораживал
   // главный поток на ~250мс при скролле — страница «телепортировалась»)
   document.querySelectorAll('img').forEach(i=>{ i.decoding='async'; });
-  // десктоп: прогреваем ленивые картинки заранее в простое, чтобы скролл их не ждал
-  if(matchMedia('(min-width:881px) and (pointer:fine)').matches){
-    window.addEventListener('load',()=>{
-      const warm=()=>document.querySelectorAll('img[loading="lazy"]').forEach(i=>{
-        i.loading='eager'; if(i.decode) i.decode().catch(()=>{});
-      });
-      ('requestIdleCallback' in window)?requestIdleCallback(warm,{timeout:2500}):setTimeout(warm,1200);
+  // прогреваем ленивые картинки заранее в простое (на всех устройствах):
+  // пока читается первый экран, остальные фото тихо грузятся и декодируются в фоне —
+  // при скролле ничего не вплывает и не подгружается на глазах
+  window.addEventListener('load',()=>{
+    const warm=()=>document.querySelectorAll('img[loading="lazy"]').forEach(i=>{
+      i.loading='eager'; if(i.decode) i.decode().catch(()=>{});
     });
-  }
+    ('requestIdleCallback' in window)?requestIdleCallback(warm,{timeout:2500}):setTimeout(warm,1200);
+  });
 
   // progress bar
   const prog=document.getElementById('progress');
